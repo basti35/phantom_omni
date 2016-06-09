@@ -28,7 +28,7 @@ int calibrationStyle;
 struct OmniState {
   hduVector3Dd position;  //3x1 vector of position
   hduVector3Dd velocity;  //3x1 vector of velocity
-  hduVector3Dd inp_vel1; //3x1 history of velocity used for filtering velocity estimate
+  hduVector3Dd inp_vel1;  //3x1 history of velocity used for filtering velocity estimate
   hduVector3Dd inp_vel2;
   hduVector3Dd inp_vel3;
   hduVector3Dd out_vel1;
@@ -75,13 +75,11 @@ public:
 
     //Publish button state on NAME/button
     std::string button_topic = omni_name_ + "/button";
-    button_pub_ = nh_.advertise<omni_msgs::OmniButtonEvent>(
-        button_topic.c_str(), 100);
+    button_pub_ = nh_.advertise<omni_msgs::OmniButtonEvent>(button_topic.c_str(), 100);
 
     //Subscribe to NAME/force_feedback
     std::string force_feedback_topic = omni_name_ + "/force_feedback";
-    haptic_sub_ = nh_.subscribe(force_feedback_topic.c_str(), 100,
-        &PhantomROS::force_callback, this);
+    haptic_sub_ = nh_.subscribe(force_feedback_topic.c_str(), 100, &PhantomROS::force_callback, this);
 
     //Frame of force feedback (NAME_sensable)
     sensable_frame_name_ = omni_name_ + "_sensable";
@@ -149,21 +147,10 @@ public:
     joint_state.position[5] = -state_->thetas[6] - M_PI;
     joint_pub_.publish(joint_state);
 
-    //Sample 'end effector' pose
-    geometry_msgs::PoseStamped pose_stamped;
-    pose_stamped.header.frame_id = link_names_[6].c_str();
-    pose_stamped.header.stamp = ros::Time::now();
-    pose_stamped.pose.position.x = 0.0;   //was 0.03 to end of phantom
-    pose_stamped.pose.orientation.w = 1.;
-    pose_pub_.publish(pose_stamped);
-
-    if ((state_->buttons[0] != state_->buttons_prev[0])
-        or (state_->buttons[1] != state_->buttons_prev[1])) {
-
-      if ((state_->buttons[0] == state_->buttons[1])
-          and (state_->buttons[0] == 1)) {
+    if ((state_->buttons[0] != state_->buttons_prev[0]) || (state_->buttons[1] != state_->buttons_prev[1]))
+    {
+      if ((state_->buttons[0] == state_->buttons[1]) && (state_->buttons[0] == 1))
         state_->lock = !(state_->lock);
-      }
       omni_msgs::OmniButtonEvent button_event;
       button_event.grey_button = state_->buttons[0];
       button_event.white_button = state_->buttons[1];
@@ -174,7 +161,8 @@ public:
   }
 };
 
-HDCallbackCode HDCALLBACK omni_state_callback(void *pUserData) {
+HDCallbackCode omni_state_callback(void *pUserData)
+{
   OmniState *omni_state = static_cast<OmniState *>(pUserData);
   if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_UPDATE) {
     ROS_DEBUG("Updating calibration...");
@@ -270,17 +258,25 @@ void HHD_Auto_Calibration()
       }
     }while (hdCheckCalibration() != HD_CALIBRATION_OK);
   }
-
-  while (hdCheckCalibration() == HD_CALIBRATION_NEEDS_MANUAL_INPUT)
+  while(hdCheckCalibration() != HD_CALIBRATION_OK)
   {
-    ROS_WARN("Please place the device into the inkwell for calibration.");
+    if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_MANUAL_INPUT) 
+      ROS_WARN("Please place the device into the inkwell for calibration.");
+    else if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_UPDATE)
+    {
+      ROS_INFO("Calibration updated successfully");
+      hdUpdateCalibration(calibrationStyle);
+    }
+    else
+      ROS_FATAL("Unknown calibration status");
     ros::Duration(0.5).sleep();
   }
 
   ROS_INFO("Calibration complete.");
 }
 
-void *ros_publish(void *ptr) {
+void *ros_publish(void *ptr)
+{
   PhantomROS *omni_ros = (PhantomROS *) ptr;
   int publish_rate;
   omni_ros->nh_.param(std::string("publish_rate"), publish_rate, 100);
@@ -288,14 +284,16 @@ void *ros_publish(void *ptr) {
   ros::AsyncSpinner spinner(2);
   spinner.start();
 
-  while (ros::ok()) {
+  while (ros::ok())
+  {
     omni_ros->publish_omni_state();
     loop_rate.sleep();
   }
   return NULL;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "omni_haptic_node");
   ros::NodeHandle nh;
   OmniState state;
@@ -306,7 +304,8 @@ int main(int argc, char** argv) {
   HDErrorInfo error;
   HHD hHD;
   hHD = hdInitDevice(HD_DEFAULT_DEVICE);
-  if (HD_DEVICE_ERROR(error = hdGetError())) {
+  if (HD_DEVICE_ERROR(error = hdGetError()))
+  {
     //hduPrintError(stderr, &error, "Failed to initialize haptic device");
     ROS_ERROR("Failed to initialize haptic device"); //: %s", &error);
     return -1;
@@ -315,7 +314,8 @@ int main(int argc, char** argv) {
   ROS_INFO("Found %s.", hdGetString(HD_DEVICE_MODEL_TYPE));
   hdEnable(HD_FORCE_OUTPUT);
   hdStartScheduler();
-  if (HD_DEVICE_ERROR(error = hdGetError())) {
+  if (HD_DEVICE_ERROR(error = hdGetError()))
+  {
     ROS_ERROR("Failed to start the scheduler"); //, &error);
     return -1;
   }
@@ -343,4 +343,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-
