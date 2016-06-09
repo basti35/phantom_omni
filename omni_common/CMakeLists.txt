@@ -38,4 +38,3 @@ add_dependencies(omni omni_msgs_gencpp)
 add_executable(omni_state src/omni_state.cpp)
 target_link_libraries(omni_state HD HDU rt ncurses ${catkin_LIBRARIES})
 add_dependencies(omni_state omni_msgs_gencpp)
-
