@@ -1,18 +1,17 @@
 <launch>
-  <arg name="reference_frame" default="/base_link"/>
-  <arg name="units" default="mm"/>
+  <arg name="reference_frame" default="/base"/>
+  <arg name="units" default="m"/>
   <arg name="publish_rate" default="1000"/>
   <arg name="omni_name" default="phantom"/>
   
-  <param name="robot_description" command="cat $(find omni_description)/urdf/omni.urdf" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find omni_description)/urdf/omni.urdf.xacro'" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
      <remap from="/joint_states" to="/phantom/joint_states"/>
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find omni_common)/launch/omni.rviz" required="true" />
   
-  <node name="omni_state" pkg="omni_common" type="omni_state" output="screen"> 
-    <param name="omni_name" value="$(arg omni_name)"/>
+  <node name="omni_state" pkg="omni_common" type="omni_state" output="screen" ns="phantom"> 
     <param name="publish_rate" value="$(arg publish_rate)"/>
     <param name="reference_frame" value="$(arg reference_frame)"/>
     <param name="units" value="$(arg units)"/>

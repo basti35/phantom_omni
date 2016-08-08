@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="phantom_omni" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <property name="pi" value="3.1415926535897931" />
 	
 	<!-- Materials -->
 	<material name="metal_seamed">
@@ -13,9 +15,11 @@
 	</material>
 	
 	<!-- Links -->
+  <link name="base" >
+  </link>
   <link name="base_link" >
     <visual>
-			<origin xyz="0 -0.02 0" />
+      <origin xyz="0 -0.02 0" rpy="0 0 0" />
       <geometry>
 				<mesh filename="package://omni_description/meshes/base.stl" />
       </geometry>
@@ -24,7 +28,7 @@
   </link>
   <link name="torso" >
     <visual>
-			<origin xyz="0 0 0.036" rpy="-1.5707 0 0"/>
+      <origin xyz="0 0 0.036" rpy="${-pi/2} 0 0"/>
       <geometry>
 				<mesh filename="package://omni_description/meshes/torso.stl" />
       </geometry>
@@ -42,7 +46,7 @@
   </link>
   <link name="lower_arm" >
 		<visual>
-			<origin xyz="0 0 0" rpy="1.5707 0 0"/>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
       <geometry>
 				<mesh filename="package://omni_description/meshes/lower_arm.stl" />
       </geometry>
@@ -51,7 +55,7 @@
   </link>
   <link name="wrist" >
 		<visual>
-			<origin xyz="0 0 0" rpy="3.14159 0 0"/>
+      <origin xyz="0 0 0" rpy="${pi} 0 0"/>
       <geometry>
 				<mesh filename="package://omni_description/meshes/wrist.stl" />
       </geometry>
@@ -60,7 +64,7 @@
   </link>
   <link name="tip" >
 		<visual>
-			<origin xyz="0 0 0" rpy="-1.5707 0 0"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 0"/>
       <geometry>
 				<mesh filename="package://omni_description/meshes/tip.stl" />
       </geometry>
@@ -69,7 +73,7 @@
   </link>
   <link name="stylus" >
     <visual>
-			<origin xyz="0 -0.033 0" rpy="1.5707 1.5707 0"/>
+      <origin xyz="0 -0.033 0" rpy="${pi/2} ${pi/2} 0"/>
       <geometry>
 				<mesh filename="package://omni_description/meshes/pen.stl" />
       </geometry>
@@ -78,6 +82,12 @@
   </link>
   
 	<!-- joints -->
+  <joint name="ref_base" type="fixed" >
+    <parent link="base" />
+    <child link="base_link" />
+    <origin xyz="0 0 0" rpy="-${pi/2} ${pi} 0" />
+    <axis xyz="0 0 1" />
+  </joint>
   <joint name="waist" type="revolute" >
     <parent link="base_link" />
     <child link="torso" />
@@ -117,7 +127,7 @@
   <joint name="roll" type="revolute" >
     <parent link="tip" />
     <child link="stylus" />
-    <origin xyz="0 -0.023 0" rpy="3.14159 3.14159 0" />
+    <origin xyz="0 -0.023 0" rpy="${pi} ${pi} 0" />
     <axis xyz="0 1 0" />
     <limit lower="-2.58" upper="2.58" velocity="100" effort="5" />
   </joint>
